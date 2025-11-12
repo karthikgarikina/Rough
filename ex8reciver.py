@@ -1,30 +1,20 @@
-# ex8_receiver.py
-# -------------------------
-# Receiver side of Stop and Wait Protocol
-
 import socket
+import random
+import time
 
-# 1️⃣ Create a socket for communication
 s = socket.socket()
+s.connect(("localhost", 8020))
 
-# 2️⃣ Connect to sender (server)
-s.connect(("localhost", 8021))   # use same port in sender
-
-print("Receiver ready...\n")
-
-# 3️⃣ Continuously receive and acknowledge frames
 while True:
-    msg = s.recv(1).decode()     # receive one frame
+    msg = s.recv(1).decode()
     if not msg:
-        break                    # exit if no message received
+        break
     print("Received -->", msg)
-
     x = int(msg)
-    # Alternate ACK between 0 and 1
+    time.sleep(random.uniform(0.5, 1.5))  # small delay to look realistic
     if x == 0:
         x = 1
+        s.send(str(x).encode())
     else:
         x = 0
-
-    # Send acknowledgment back to sender
-    s.send(str(x).encode())
+        s.send(str(x).encode())

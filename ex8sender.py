@@ -1,49 +1,48 @@
-# ex8_sender.py
-# -------------------------
-# Sender side of Stop and Wait Protocol
-
 import socket
 import time
 import random
 
-# 1️⃣ Create a socket (server)
+# Create TCP socket
 s = socket.socket()
-
-# Allow immediate reuse of same port after program ends
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-# 2️⃣ Bind to localhost and port (use same port as receiver)
-s.bind(("localhost", 8021))
+s.bind(("localhost", 8020))
 s.listen(1)
-
 print("Waiting for receiver to connect...")
-c, adr = s.accept()
-print("Connection to", adr, "established.\n")
 
-# 3️⃣ Take total number of frames from user
+c, adr = s.accept()
+print("Connection established with", adr)
+
 a = int(input("Enter total number of frames: "))
 x = 0
-
-# 4️⃣ Send first frame
-print("Sending -->", x)
+print("sending -->", x)
 c.send(str(x).encode())
 
-# 5️⃣ Continue sending until all frames are sent
 while a > 1:
-    timer = 5                # maximum wait time
-    t = random.randint(1, 7) # random delay simulation
-    msg = c.recv(1).decode() # receive ACK
+    timer = 5
+    t = random.randint(1, 7)
+    try:
+        msg = c.recv(1).decode()
+    except:
+        msg = ''
+    
+    if not msg:
+        print("No ACK received... (simulating loss)")
+        msg = str(x)
 
     if timer > t:
-        time.sleep(2)
-        print("ACK -->", msg)
+        time.sleep(1)
+        print("ack-->", msg)
         x = int(msg)
-        print("Sending -->", x)
+        print("sending -->", str(x))
         c.send(str(x).encode())
     else:
-        time.sleep(2)
-        print("Timeout")
-        print("Sending again -->", x)
+        time.sleep(1)
+        print("timeout")
+        print("sending again-->", x)
         c.send(str(x).encode())
-        a = a + 1  # resend frame
+        a = a + 1  # retransmit same frame
+    
     a = a - 1
+
+print("All frames sent successfully.")
+c.close()
+s.close()
